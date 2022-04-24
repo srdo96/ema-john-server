@@ -29,7 +29,19 @@ async function run() {
       const query = {};
       const cursor = productCollection.find(query);
       const products = await cursor.toArray();
+      // const products = await cursor.limit(10).toArray();
       res.send(products);
+    });
+
+    app.get("/count", async (req, res) => {
+      const query = {};
+      const cursor = productCollection.find(query);
+      const count = await cursor.count();
+      // count in not JSON file. Can send count in 2 ways
+      // 1.
+      // res.json(count);
+      // 2. make count an object
+      res.send({ count });
     });
   } finally {
     // await client.close();
