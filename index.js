@@ -26,17 +26,32 @@ async function run() {
     const productCollection = client.db("ema-john").collection("product");
 
     app.get("/products", async (req, res) => {
-      const query = {};
-      const cursor = productCollection.find(query);
-      const products = await cursor.toArray();
-      // const products = await cursor.limit(10).toArray();
+      console.log("query", req.query);
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+
+      // Load data based on the page number and size
+      let products;
+      if (page || size) {
+        // 1 --> skip: 0*10, get: 0-10
+        // 2 --> skip: 1*10, get: 11-20
+        // 3 --> skip: 2*10, get: 21-30
+
+        products = await cursor
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+      } else {
+        products = await cursor.toArray();
+      }
       res.send(products);
     });
 
+    // Count
     app.get("/count", async (req, res) => {
       const query = {};
       const cursor = productCollection.find(query);
-      const count = await cursor.count();
+      const count = await productCollection.estimatedDocumentCount();
       // count in not JSON file. Can send count in 2 ways
       // 1.
       // res.json(count);
