@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -29,8 +29,9 @@ async function run() {
       console.log("query", req.query);
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
+      const query = {};
+      const cursor = productCollection.find(query);
 
-      // Load data based on the page number and size
       let products;
       if (page || size) {
         // 1 --> skip: 0*10, get: 0-10
@@ -57,6 +58,17 @@ async function run() {
       // res.json(count);
       // 2. make count an object
       res.send({ count });
+    });
+
+    // use post to get products by ids
+    app.post("/productByKeys", async (req, res) => {
+      const keys = req.body;
+      const ids = keys.map((id) => ObjectId(id));
+      const query = { _id: { $in: ids } };
+      const cursor = productCollection.find(query);
+      const products = await cursor.toArray();
+      res.send(products);
+      console.log(keys);
     });
   } finally {
     // await client.close();
